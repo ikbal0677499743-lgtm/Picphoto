@@ -16,7 +16,7 @@
   "keywords": [],
   "author": "",
   "license": "ISC",
-  "type": "commonjs",
+  "type": "module",
   "bugs": {
     "url": "https://github.com/ikbal0677499743-lgtm/Picphoto/issues"
   },
@@ -31,7 +31,7 @@
     "eslint-config-next": "^16.1.6",
     "framer-motion": "^12.33.0",
     "lucide-react": "^0.563.0",
-    "next": "^14.2.35",
+    "next": "^16.1.6",
     "postcss": "^8.5.6",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
