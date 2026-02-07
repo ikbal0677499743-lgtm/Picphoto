@@ -32,7 +32,10 @@ node --version
 npm --version
 ```
 
-> **✅ Want to verify everything works?** See [TESTING.md](./TESTING.md) for a complete testing checklist!
+> **✅ Want to verify everything works?** See our testing guides:
+> - **Quick:** [TESTGUIDE.md](./TESTGUIDE.md) - Visual flow diagram (2 min)
+> - **Simple:** [HOWTOTEST.md](./HOWTOTEST.md) - Step-by-step guide (5 min)
+> - **Complete:** [TESTING.md](./TESTING.md) - Full checklist (15 min)
 
 ## 🚀 Getting Started
 
