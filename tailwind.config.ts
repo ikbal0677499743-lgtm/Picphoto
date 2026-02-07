@@ -19,9 +19,9 @@ const config: Config = {
         muted: "#6B7280",
       },
       fontFamily: {
-        sans: ['var(--font-dm-sans)', 'sans-serif'],
-        serif: ['var(--font-playfair)', 'serif'],
-        cursive: ['var(--font-dancing-script)', 'cursive'],
+        sans: ['system-ui', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'sans-serif'],
+        serif: ['Georgia', 'Cambria', 'Times New Roman', 'serif'],
+        cursive: ['cursive'],
       },
     },
   },
