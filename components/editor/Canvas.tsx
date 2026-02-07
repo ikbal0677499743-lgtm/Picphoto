@@ -1,11 +1,14 @@
 'use client'
 
-import { useRef, DragEvent } from 'react'
+import { useRef, DragEvent, useState } from 'react'
 import { BookOpen, Image as ImageIcon } from 'lucide-react'
 import { useEditorStore } from '@/lib/store/editorStore'
 
 export default function Canvas() {
   const canvasRef = useRef<HTMLDivElement>(null)
+  const [editingTextId, setEditingTextId] = useState<string | null>(null)
+  const [editingText, setEditingText] = useState('')
+  
   const pages = useEditorStore(state => state.pages)
   const currentPageIndex = useEditorStore(state => state.currentPageIndex)
   const zoom = useEditorStore(state => state.zoom)
@@ -55,6 +58,28 @@ export default function Canvas() {
       }
     } catch (error) {
       console.error('Error dropping image:', error)
+    }
+  }
+  
+  const handleTextDoubleClick = (element: any) => {
+    setEditingTextId(element.id)
+    setEditingText(element.content || 'Text')
+  }
+  
+  const handleTextBlur = (elementId: string) => {
+    if (editingText.trim()) {
+      updateElement(currentPageIndex, elementId, { content: editingText })
+    }
+    setEditingTextId(null)
+  }
+  
+  const handleTextKeyDown = (e: React.KeyboardEvent, elementId: string) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault()
+      handleTextBlur(elementId)
+    } else if (e.key === 'Escape') {
+      setEditingTextId(null)
+      setEditingText('')
     }
   }
   
@@ -163,18 +188,40 @@ export default function Canvas() {
               )}
               
               {element.type === 'text' && (
-                <div
-                  className="w-full h-full p-2"
-                  style={{
-                    fontFamily: element.fontFamily || 'DM Sans',
-                    fontSize: `${element.fontSize || 24}px`,
-                    color: element.fontColor || '#000000',
-                    fontWeight: element.fontWeight || 'normal',
-                    textAlign: element.textAlign || 'left',
-                  }}
-                >
-                  {element.content || 'Text'}
-                </div>
+                editingTextId === element.id ? (
+                  <textarea
+                    autoFocus
+                    value={editingText}
+                    onChange={(e) => setEditingText(e.target.value)}
+                    onBlur={() => handleTextBlur(element.id)}
+                    onKeyDown={(e) => handleTextKeyDown(e, element.id)}
+                    className="w-full h-full p-2 border-2 border-accent rounded resize-none bg-white"
+                    style={{
+                      fontFamily: element.fontFamily || 'DM Sans',
+                      fontSize: `${element.fontSize || 24}px`,
+                      color: element.fontColor || '#000000',
+                      fontWeight: element.fontWeight || 'normal',
+                      textAlign: element.textAlign || 'left',
+                    }}
+                  />
+                ) : (
+                  <div
+                    className="w-full h-full p-2 cursor-text"
+                    style={{
+                      fontFamily: element.fontFamily || 'DM Sans',
+                      fontSize: `${element.fontSize || 24}px`,
+                      color: element.fontColor || '#000000',
+                      fontWeight: element.fontWeight || 'normal',
+                      textAlign: element.textAlign || 'left',
+                    }}
+                    onDoubleClick={(e) => {
+                      e.stopPropagation()
+                      handleTextDoubleClick(element)
+                    }}
+                  >
+                    {element.content || 'Text'}
+                  </div>
+                )
               )}
               
               {element.type === 'sticker' && element.stickerUrl && (

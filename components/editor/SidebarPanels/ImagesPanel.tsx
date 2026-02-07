@@ -9,6 +9,8 @@ export default function ImagesPanel() {
   const [isDragging, setIsDragging] = useState(false)
   const uploadedImages = useEditorStore(state => state.uploadedImages)
   const addUploadedImage = useEditorStore(state => state.addUploadedImage)
+  const addElement = useEditorStore(state => state.addElement)
+  const currentPageIndex = useEditorStore(state => state.currentPageIndex)
   
   const handleFileSelect = (files: FileList | null) => {
     if (!files) return
@@ -53,6 +55,24 @@ export default function ImagesPanel() {
     e.stopPropagation()
     setIsDragging(false)
     handleFileSelect(e.dataTransfer.files)
+  }
+  
+  const handleImageClick = (image: any) => {
+    // Add image to current page on click
+    const element = {
+      id: Math.random().toString(36).substring(2),
+      type: 'image' as const,
+      x: 50,
+      y: 50,
+      width: 300,
+      height: 200,
+      rotation: 0,
+      opacity: 1,
+      zIndex: 50,
+      imageUrl: image.url,
+      placeholder: false,
+    }
+    addElement(currentPageIndex, element)
   }
 
   return (
@@ -120,11 +140,13 @@ export default function ImagesPanel() {
           {uploadedImages.map((image) => (
             <div
               key={image.id}
-              className="aspect-square rounded-lg overflow-hidden bg-gray-100 cursor-move"
+              className="aspect-square rounded-lg overflow-hidden bg-gray-100 cursor-pointer hover:ring-2 hover:ring-accent transition-all"
               draggable
               onDragStart={(e) => {
                 e.dataTransfer.setData('application/json', JSON.stringify(image))
               }}
+              onClick={() => handleImageClick(image)}
+              title="Click to add to canvas or drag to position"
             >
               <img
                 src={image.url}
