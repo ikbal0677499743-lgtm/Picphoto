@@ -2,17 +2,40 @@
 
 Get Picphoto running in under 2 minutes!
 
+> **⚠️ CRITICAL:** You must be in the Picphoto project directory to run these commands! Not your home directory.
+
 ## For First-Time Setup
 
 ```bash
-# 1. Install dependencies
+# 1. Navigate to the project directory (REQUIRED!)
+cd Picphoto
+
+# 2. Verify you're in the right place
+ls package.json
+# You should see: package.json
+
+# 3. Install dependencies
 npm install
 
-# 2. Start development server
+# 4. Start development server
 npm run dev
 ```
 
 Then open **http://localhost:3000** in your browser! 🎉
+
+## ❌ Common Mistake
+
+**DON'T DO THIS:**
+```bash
+~ $ npm run dev  # ❌ Wrong! Running from home directory
+npm error: Cannot find package.json
+```
+
+**DO THIS:**
+```bash
+~ $ cd Picphoto  # ✅ First, navigate to project
+~/Picphoto $ npm run dev  # ✅ Then run commands
+```
 
 ## Daily Development
 

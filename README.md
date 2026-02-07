@@ -39,11 +39,22 @@ npm --version
 
 ## 🚀 Getting Started
 
+> **⚠️ IMPORTANT:** Make sure you navigate into the project directory after cloning! All npm commands must be run from inside the `Picphoto` folder, not from your home directory.
+
 ### 1. Clone the Repository
 
 ```bash
 git clone https://github.com/ikbal0677499743-lgtm/Picphoto.git
 cd Picphoto
+```
+
+**✅ Verify you're in the correct directory:**
+```bash
+pwd
+# Should show: .../Picphoto (not your home directory)
+
+ls package.json
+# Should show: package.json
 ```
 
 ### 2. Install Dependencies
@@ -217,6 +228,37 @@ export const themes: Theme[] = [
 - **Utilities**: clsx, tailwind-merge
 
 ## 🐛 Troubleshooting
+
+### ❌ ERROR: "Cannot find package.json" or "ENOENT: no such file or directory"
+
+**This is the #1 most common error!** It means you're running npm commands from the wrong directory.
+
+**Problem:**
+```bash
+npm error path /Users/yourname/package.json
+npm error enoent Could not read package.json
+```
+
+**Solution:**
+```bash
+# Navigate to the project directory first!
+cd Picphoto
+
+# Verify you're in the correct location:
+ls package.json
+# You should see: package.json
+
+# Now run your commands:
+npm install
+npm run dev
+```
+
+**How to check your current directory:**
+```bash
+pwd  # Shows current directory path
+```
+
+You should be in a path that ends with `/Picphoto`, not in your home directory (`~` or `/Users/yourname`).
 
 ### Port Already in Use
 

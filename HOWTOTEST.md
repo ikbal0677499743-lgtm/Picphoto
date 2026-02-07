@@ -2,14 +2,23 @@
 
 A simple guide to test the Picphoto photobook application.
 
+> **⚠️ IMPORTANT:** Before you start, make sure you're in the Picphoto project directory!
+> ```bash
+> cd Picphoto  # Navigate to the project first
+> ls package.json  # Verify the file exists
+> ```
+
 ## Quick Test (2 minutes)
 
 ```bash
-# 1. Install and start
+# 1. Make sure you're in the Picphoto directory!
+cd Picphoto
+
+# 2. Install and start
 npm install
 npm run dev
 
-# 2. Open browser
+# 3. Open browser
 # http://localhost:3000
 ```
 
@@ -137,6 +146,9 @@ Then follow this flow:
 ## Common Commands
 
 ```bash
+# IMPORTANT: Always run from the Picphoto directory!
+cd Picphoto  # First, navigate here
+
 # Development
 npm run dev          # Start dev server (http://localhost:3000)
 
@@ -186,9 +198,19 @@ Use this for systematic testing:
 
 ## Quick Troubleshooting
 
+**Problem:** "Cannot find package.json" or ENOENT error
+```bash
+# Solution: You're in the wrong directory!
+pwd  # Check where you are
+cd Picphoto  # Navigate to project directory
+ls package.json  # Verify file exists
+npm install  # Now install
+```
+
 **Problem:** Server won't start
 ```bash
 # Solution
+cd Picphoto  # Make sure you're in the project directory first!
 npm install
 npm run dev
 ```

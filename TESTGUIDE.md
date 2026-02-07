@@ -2,6 +2,12 @@
 
 A visual guide showing exactly how to test the Picphoto application.
 
+> **⚠️ CRITICAL FIRST STEP:** Navigate to the project directory!
+> ```bash
+> cd Picphoto  # You MUST be in this directory
+> ls package.json  # Verify this file exists before running npm commands
+> ```
+
 ## 📊 Testing Flow Diagram
 
 ```
@@ -23,15 +29,20 @@ SUCCESS! ✅
 ## 🚀 Quick Start (Copy & Paste)
 
 ```bash
-# Step 1: Setup
+# Step 0: Navigate to project directory (REQUIRED!)
 cd Picphoto
+
+# Step 1: Verify you're in the right place
+ls package.json  # Should show: package.json
+
+# Step 2: Setup
 npm install
 npm run dev
 
-# Step 2: Open browser
+# Step 3: Open browser
 # Navigate to: http://localhost:3000
 
-# Step 3: Test the flow (click through each page)
+# Step 4: Test the flow (click through each page)
 ```
 
 ## 📝 What to Test on Each Page
@@ -177,8 +188,30 @@ Homepage → "Start Creating" → "Start My Design" → "Go to Editor" → "Next
 
 ## 🔧 Troubleshooting
 
+### ❌ Error: "Cannot find package.json"
+**This is the #1 error!** You're running npm from the wrong directory.
+
+```bash
+# Check where you are
+pwd
+
+# You should see something like: /Users/yourname/Picphoto
+# NOT just: /Users/yourname
+
+# Navigate to project directory
+cd Picphoto
+
+# Verify you're in the right place
+ls package.json  # Should show: package.json
+
+# Now run your commands
+npm install
+npm run dev
+```
+
 ### Server won't start?
 ```bash
+cd Picphoto  # First, go to project directory
 npm install
 npm run dev
 ```
