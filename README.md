@@ -32,6 +32,8 @@ node --version
 npm --version
 ```
 
+> **✅ Want to verify everything works?** See [TESTING.md](./TESTING.md) for a complete testing checklist!
+
 ## 🚀 Getting Started
 
 ### 1. Clone the Repository
