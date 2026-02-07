@@ -1,52 +1,51 @@
 'use client'
 
+import { Suspense, useEffect } from 'react'
 import { useSearchParams } from 'next/navigation'
-import Link from 'next/link'
-import { ArrowLeft } from 'lucide-react'
-import { Suspense } from 'react'
+import { useEditorStore } from '@/lib/store/editorStore'
+import EditorHeader from '@/components/editor/EditorHeader'
+import Sidebar from '@/components/editor/Sidebar'
+import Canvas from '@/components/editor/Canvas'
+import PageNavigator from '@/components/editor/PageNavigator'
+import FloatingToolbar from '@/components/editor/FloatingToolbar'
+import ContextToolbar from '@/components/editor/ContextToolbar'
 
 function EditorContent() {
   const searchParams = useSearchParams()
+  const setTemplateTheme = useEditorStore(state => state.setTemplateTheme)
+  const sidebarOpen = useEditorStore(state => state.sidebarOpen)
   
-  const theme = searchParams.get('theme') || 'unknown'
-  const mode = searchParams.get('mode') || 'unknown'
+  const theme = searchParams.get('theme') || 'paris-1'
+  const mode = searchParams.get('mode') || 'template'
+  
+  useEffect(() => {
+    setTemplateTheme(theme)
+  }, [theme, setTemplateTheme])
 
   return (
-    <div className="min-h-screen flex flex-col">
-      {/* Header */}
-      <header className="h-16 bg-white border-b border-gray-200">
-        <div className="container mx-auto px-4 h-full flex items-center justify-between">
-          <Link 
-            href="/products/travel-photobook" 
-            className="flex items-center gap-2 text-gray-700 hover:text-black transition-colors"
-          >
-            <ArrowLeft className="w-5 h-5" />
-            <span className="font-medium">Back</span>
-          </Link>
+    <div className="h-screen flex flex-col overflow-hidden bg-white">
+      {/* Header - 52px */}
+      <EditorHeader />
+      
+      {/* Main content area */}
+      <div className="flex-1 flex overflow-hidden" style={{ height: 'calc(100vh - 52px - 120px)' }}>
+        {/* Sidebar - 72px always visible, +280px when panel open */}
+        <Sidebar />
+        
+        {/* Canvas area - fills remaining space */}
+        <div className="flex-1 relative bg-gray-200 overflow-hidden">
+          <Canvas />
           
-          <h1 className="font-serif font-black text-xl">pixory</h1>
+          {/* Context toolbar (appears when element selected) */}
+          <ContextToolbar />
           
-          <div className="w-20"></div>
-        </div>
-      </header>
-
-      {/* Content */}
-      <div className="flex-1 flex items-center justify-center p-6">
-        <div className="text-center max-w-md">
-          <h1 className="font-serif font-black text-4xl mb-4">Editor (Coming Soon)</h1>
-          <p className="text-gray-600 mb-6">
-            The full editor will be implemented here.
-          </p>
-          <div className="bg-gray-100 rounded-xl p-6 space-y-2 text-left">
-            <p className="text-sm">
-              <span className="font-semibold">Theme:</span> {theme}
-            </p>
-            <p className="text-sm">
-              <span className="font-semibold">Mode:</span> {mode}
-            </p>
-          </div>
+          {/* Floating toolbar on right side */}
+          <FloatingToolbar />
         </div>
       </div>
+      
+      {/* Page Navigator - 120px */}
+      <PageNavigator />
     </div>
   )
 }
@@ -57,7 +56,7 @@ export default function EditorPage() {
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center">
           <div className="w-16 h-16 border-4 border-accent border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading...</p>
+          <p className="text-gray-600">Loading editor...</p>
         </div>
       </div>
     }>
