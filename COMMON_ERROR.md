@@ -1,6 +1,52 @@
-# ⚠️ COMMON ERROR: Package.json Not Found
+# ⚠️ COMMON ERRORS: Getting Started with Picphoto
 
-## The Problem
+## Error 1: "cd: no such file or directory: Picphoto"
+
+### The Problem
+
+You're seeing this error:
+```
+cd: no such file or directory: Picphoto
+```
+
+### What This Means
+
+🔴 **The Picphoto directory doesn't exist!**  
+You haven't cloned the repository yet, so there's no folder to navigate into.
+
+### The Fix
+
+You need to **clone the repository first** before you can cd into it.
+
+```bash
+# Step 1: Clone the repository from GitHub
+git clone https://github.com/ikbal0677499743-lgtm/Picphoto.git
+
+# Step 2: Navigate into the new directory
+cd Picphoto
+
+# Step 3: Verify it worked
+ls package.json
+# Should show: package.json
+
+# Step 4: Install and run
+npm install
+npm run dev
+```
+
+### How to Check if You Have the Project
+
+```bash
+# Check if Picphoto folder exists
+ls Picphoto
+
+# If it exists, you'll see files listed
+# If it doesn't exist, you'll see: "ls: Picphoto: No such file or directory"
+```
+
+---
+
+## Error 2: "Cannot find package.json" or "ENOENT"
 
 You're seeing this error:
 ```

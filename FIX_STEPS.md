@@ -1,22 +1,60 @@
-# 🎯 STEP-BY-STEP: Fix "Package.json Not Found" Error
+# 🎯 STEP-BY-STEP: Getting Started with Picphoto
 
-## Your Current Situation
+## Which Error Are You Seeing?
 
-You're seeing this error when you try to run `npm install` or `npm run dev`:
+### Error 1: "cd: no such file or directory: Picphoto"
+👉 **You need to clone the repository first!** Jump to [Step 0: Clone the Repository](#step-0-clone-the-repository)
 
+### Error 2: "npm error: Cannot find package.json"
+👉 **You're in the wrong directory!** Jump to [Step 1: Navigate to Project](#step-1-navigate-to-project-directory)
+
+---
+
+## Step 0: Clone the Repository
+
+**⚠️ START HERE if you see "no such file or directory" error!**
+
+If you're getting `cd: no such file or directory: Picphoto`, it means you don't have the project yet.
+
+### Check if you have the project:
+
+```bash
+ls Picphoto
 ```
-npm error path /Users/ikbal/package.json
-npm error enoent Could not read package.json
+
+**If you see:** `ls: Picphoto: No such file or directory`  
+👉 **You need to clone the repository first!**
+
+### Clone the Repository:
+
+```bash
+# Clone the project from GitHub
+git clone https://github.com/ikbal0677499743-lgtm/Picphoto.git
 ```
 
-## What This Means
+You should see:
+```
+Cloning into 'Picphoto'...
+remote: Enumerating objects: 100, done.
+remote: Counting objects: 100% (100/100), done.
+...
+```
 
-🔴 **You're in the wrong directory!**  
-You're trying to run npm commands from your home folder, but the project is in a subfolder called `Picphoto`.
+✅ **Success!** The Picphoto folder now exists.
 
-## Follow These Steps EXACTLY
+Verify it was created:
 
-### Step 1: Find Out Where You Are
+```bash
+ls Picphoto
+```
+
+You should see files like: `package.json`, `README.md`, `app/`, etc.
+
+Now continue to Step 1! ⬇️
+
+---
+
+## Step 1: Navigate to Project Directory
 
 Open your terminal and type:
 
@@ -35,13 +73,15 @@ This is your **home directory**. ❌ Wrong place!
 
 ### Step 2: Navigate to the Project Directory
 
-Type this command:
+**Already covered above!** If you followed Step 1, you should already be in the Picphoto directory.
+
+If you skipped it, type:
 
 ```bash
 cd Picphoto
 ```
 
-💡 **What this does:** Changes Directory (cd) to the Picphoto folder
+**Getting "no such file or directory"?** Go to [Step 0](#step-0-clone-the-repository) to clone the repository first!
 
 ---
 
@@ -116,7 +156,27 @@ You should see:
 
 ## Complete Command Sequence (Copy All at Once)
 
-If you want to start fresh, copy and paste these commands one at a time:
+### If you DON'T have the project yet:
+
+```bash
+# Clone the repository
+git clone https://github.com/ikbal0677499743-lgtm/Picphoto.git
+
+# Navigate to project
+cd Picphoto
+
+# Verify location
+pwd
+ls package.json
+
+# Install dependencies
+npm install
+
+# Start server
+npm run dev
+```
+
+### If you ALREADY have the project:
 
 ```bash
 # Navigate to project
@@ -191,6 +251,15 @@ The key is seeing `Picphoto` in your prompt!
 ---
 
 ## Common Questions
+
+### Q: I'm getting "cd: no such file or directory: Picphoto"
+
+**A:** You haven't cloned the repository yet! Do this first:
+
+```bash
+git clone https://github.com/ikbal0677499743-lgtm/Picphoto.git
+cd Picphoto
+```
 
 ### Q: Do I need to clone the repository first?
 

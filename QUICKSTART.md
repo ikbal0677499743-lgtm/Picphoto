@@ -2,11 +2,16 @@
 
 Get Picphoto running in under 2 minutes!
 
+> **🆕 FIRST TIME?** If you've never set this up before, see [FIRST_TIME_SETUP.md](./FIRST_TIME_SETUP.md) for a complete guide!
+
 > **⚠️ CRITICAL:** You must be in the Picphoto project directory to run these commands! Not your home directory.
 
 ## For First-Time Setup
 
 ```bash
+# 0. Clone the repository (FIRST TIME ONLY!)
+git clone https://github.com/ikbal0677499743-lgtm/Picphoto.git
+
 # 1. Navigate to the project directory (REQUIRED!)
 cd Picphoto
 
@@ -23,7 +28,22 @@ npm run dev
 
 Then open **http://localhost:3000** in your browser! 🎉
 
-## ❌ Common Mistake
+## ❌ Common Mistakes
+
+### Mistake 1: Haven't cloned the repository
+
+**DON'T DO THIS:**
+```bash
+~ $ cd Picphoto  # ❌ Error: no such file or directory
+```
+
+**DO THIS:**
+```bash
+~ $ git clone https://github.com/ikbal0677499743-lgtm/Picphoto.git  # ✅ Clone first!
+~ $ cd Picphoto  # ✅ Then navigate
+```
+
+### Mistake 2: Running npm from wrong directory
 
 **DON'T DO THIS:**
 ```bash

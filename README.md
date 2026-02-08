@@ -39,14 +39,21 @@ npm --version
 
 ## 🚀 Getting Started
 
+> **🆕 NEVER SET THIS UP BEFORE?** See [FIRST_TIME_SETUP.md](./FIRST_TIME_SETUP.md) for a complete beginner's guide!
+
 > **⚠️ IMPORTANT:** Make sure you navigate into the project directory after cloning! All npm commands must be run from inside the `Picphoto` folder, not from your home directory.
 
 ### 1. Clone the Repository
+
+**First time only - if you haven't cloned the project yet:**
 
 ```bash
 git clone https://github.com/ikbal0677499743-lgtm/Picphoto.git
 cd Picphoto
 ```
+
+**If you get "cd: no such file or directory":**  
+👉 You need to clone the repository first! See [FIRST_TIME_SETUP.md](./FIRST_TIME_SETUP.md)
 
 **✅ Verify you're in the correct directory:**
 ```bash
@@ -228,6 +235,36 @@ export const themes: Theme[] = [
 - **Utilities**: clsx, tailwind-merge
 
 ## 🐛 Troubleshooting
+
+### ❌ ERROR: "cd: no such file or directory: Picphoto"
+
+**This means you haven't cloned the repository yet!**
+
+**Problem:**
+```bash
+cd: no such file or directory: Picphoto
+```
+
+**Solution:**
+```bash
+# Clone the repository first
+git clone https://github.com/ikbal0677499743-lgtm/Picphoto.git
+
+# Then navigate into it
+cd Picphoto
+
+# Verify it worked
+ls package.json
+# You should see: package.json
+
+# Now continue with setup
+npm install
+npm run dev
+```
+
+👉 **Need more help?** See [FIRST_TIME_SETUP.md](./FIRST_TIME_SETUP.md) for a complete guide.
+
+---
 
 ### ❌ ERROR: "Cannot find package.json" or "ENOENT: no such file or directory"
 
