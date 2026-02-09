@@ -14,6 +14,9 @@ export interface CanvasElement {
   // Image specific
   imageUrl?: string
   placeholder?: boolean
+  cropData?: { offsetX: number, offsetY: number, zoom: number }
+  flipX?: boolean
+  flipY?: boolean
   // Text specific
   content?: string
   fontFamily?: string
@@ -62,6 +65,7 @@ interface EditorState {
   zoom: number
   viewMode: 'single' | 'all'
   isPreviewMode: boolean
+  cropModeElementId: string | null
   
   // Images
   uploadedImages: UploadedImage[]
@@ -91,6 +95,7 @@ interface EditorState {
   setZoom: (zoom: number) => void
   setViewMode: (mode: 'single' | 'all') => void
   togglePreview: () => void
+  setCropMode: (elementId: string | null) => void
   
   addUploadedImage: (image: UploadedImage) => void
   
@@ -160,6 +165,7 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   zoom: 100,
   viewMode: 'single',
   isPreviewMode: false,
+  cropModeElementId: null,
   
   uploadedImages: [],
   
@@ -275,6 +281,10 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   
   togglePreview: () => {
     set({ isPreviewMode: !get().isPreviewMode })
+  },
+  
+  setCropMode: (elementId) => {
+    set({ cropModeElementId: elementId })
   },
   
   addUploadedImage: (image) => {

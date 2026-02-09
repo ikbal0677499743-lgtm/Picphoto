@@ -1,8 +1,8 @@
 'use client'
 
-import { useRef, useEffect, useCallback, DragEvent, useState } from 'react'
-import { Canvas as FabricCanvas, FabricImage, Textbox, Rect, Circle, FabricObject } from 'fabric'
-import { BookOpen, Check, X, RotateCcw } from 'lucide-react'
+import { useRef, useEffect, useCallback, DragEvent } from 'react'
+import { Canvas as FabricCanvas, FabricImage, Textbox, Rect, Circle, Group, FabricObject } from 'fabric'
+import { BookOpen, Image as ImageIcon } from 'lucide-react'
 import { useEditorStore, CanvasElement } from '@/lib/store/editorStore'
 
 // Extend FabricObject type to include our custom data
@@ -19,10 +19,6 @@ export default function Canvas() {
   const isUpdatingFromStore = useRef(false)
   const isUpdatingStore = useRef(false)
   
-  // Crop mode state
-  const [cropZoom, setCropZoom] = useState(100)
-  const [originalCropData, setOriginalCropData] = useState<{offsetX: number, offsetY: number, zoom: number} | null>(null)
-  
   const pages = useEditorStore(state => state.pages)
   const currentPageIndex = useEditorStore(state => state.currentPageIndex)
   const zoom = useEditorStore(state => state.zoom)
@@ -32,11 +28,8 @@ export default function Canvas() {
   const deleteElement = useEditorStore(state => state.deleteElement)
   const addElement = useEditorStore(state => state.addElement)
   const templateTheme = useEditorStore(state => state.templateTheme)
-  const cropModeElementId = useEditorStore(state => state.cropModeElementId)
-  const setCropMode = useEditorStore(state => state.setCropMode)
   
   const currentPage = pages[currentPageIndex]
-  const cropElement = currentPage?.elements.find(el => el.id === cropModeElementId)
   
   // Initialize Fabric canvas
   useEffect(() => {
@@ -54,7 +47,7 @@ export default function Canvas() {
     
     // Handle object selection
     canvas.on('selection:created', (e) => {
-      if (isUpdatingFromStore.current || cropModeElementId) return
+      if (isUpdatingFromStore.current) return
       const selected = e.selected?.[0] as CustomFabricObject
       if (selected && selected.data?.elementId) {
         selectElement(selected.data.elementId)
@@ -62,7 +55,7 @@ export default function Canvas() {
     })
     
     canvas.on('selection:updated', (e) => {
-      if (isUpdatingFromStore.current || cropModeElementId) return
+      if (isUpdatingFromStore.current) return
       const selected = e.selected?.[0] as CustomFabricObject
       if (selected && selected.data?.elementId) {
         selectElement(selected.data.elementId)
@@ -70,7 +63,7 @@ export default function Canvas() {
     })
     
     canvas.on('selection:cleared', () => {
-      if (isUpdatingFromStore.current || cropModeElementId) return
+      if (isUpdatingFromStore.current) return
       selectElement(null)
     })
     
@@ -80,68 +73,29 @@ export default function Canvas() {
       const obj = e.target as CustomFabricObject
       if (obj && obj.data?.elementId) {
         isUpdatingStore.current = true
-        
-        // If in crop mode, save crop data
-        if (cropModeElementId && obj.data.elementId === cropModeElementId) {
-          const element = currentPage?.elements.find(el => el.id === cropModeElementId)
-          if (element && element.type === 'image') {
-            updateElement(currentPageIndex, obj.data.elementId, {
-              cropData: {
-                offsetX: obj.left || 0,
-                offsetY: obj.top || 0,
-                zoom: cropZoom,
-              }
-            })
-          }
-        } else {
-          updateElement(currentPageIndex, obj.data.elementId, {
-            x: obj.left || 0,
-            y: obj.top || 0,
-            width: (obj.width || 0) * (obj.scaleX || 1),
-            height: (obj.height || 0) * (obj.scaleY || 1),
-            rotation: obj.angle || 0,
-          })
-        }
+        updateElement(currentPageIndex, obj.data.elementId, {
+          x: obj.left || 0,
+          y: obj.top || 0,
+          width: (obj.width || 0) * (obj.scaleX || 1),
+          height: (obj.height || 0) * (obj.scaleY || 1),
+          rotation: obj.angle || 0,
+        })
         isUpdatingStore.current = false
       }
     })
     
-    // Handle double-click
+    // Handle double-click for text editing
     canvas.on('mouse:dblclick', (e) => {
-      if (cropModeElementId) return // Don't handle double-click in crop mode
-      
-      const target = e.target as CustomFabricObject
-      if (target) {
-        if (target.type === 'textbox') {
-          // Text editing
-          canvas.setActiveObject(target)
-          ;(target as Textbox).enterEditing()
-          canvas.renderAll()
-        } else if (target.type === 'image' && target.data?.elementId) {
-          // Enter crop mode for images
-          const element = currentPage?.elements.find(el => el.id === target.data?.elementId)
-          if (element && element.type === 'image' && !element.placeholder) {
-            setCropMode(target.data.elementId)
-            // Save original crop data for cancel
-            setOriginalCropData(element.cropData || { offsetX: element.x, offsetY: element.y, zoom: 100 })
-            setCropZoom(element.cropData?.zoom || 100)
-          }
-        }
+      const target = e.target
+      if (target && target.type === 'textbox') {
+        canvas.setActiveObject(target)
+        ;(target as Textbox).enterEditing()
+        canvas.renderAll()
       }
     })
     
     // Keyboard shortcuts
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (cropModeElementId) {
-        // In crop mode, Escape cancels
-        if (e.key === 'Escape') {
-          handleCropCancel()
-        } else if (e.key === 'Enter') {
-          handleCropDone()
-        }
-        return
-      }
-      
       if (e.key === 'Delete' || e.key === 'Backspace') {
         const activeObject = canvas.getActiveObject() as CustomFabricObject
         if (activeObject && activeObject.data?.elementId) {
@@ -187,22 +141,16 @@ export default function Canvas() {
         if (obj) {
           canvas.add(obj)
           const customObj = obj as CustomFabricObject
-          if (customObj.data?.elementId === selectedElementId && !cropModeElementId) {
+          if (customObj.data?.elementId === selectedElementId) {
             canvas.setActiveObject(obj)
           }
         }
       })
-      
-      // If in crop mode, add overlay
-      if (cropModeElementId) {
-        addCropModeOverlay(canvas)
-      }
-      
       canvas.renderAll()
       isUpdatingFromStore.current = false
     })
     
-  }, [currentPage?.elements, currentPageIndex, cropModeElementId])
+  }, [currentPage?.elements, currentPageIndex])
   
   // Handle zoom
   useEffect(() => {
@@ -211,54 +159,6 @@ export default function Canvas() {
       containerRef.current.style.transform = `scale(${scale})`
     }
   }, [zoom])
-  
-  // Add crop mode overlay
-  const addCropModeOverlay = (canvas: FabricCanvas) => {
-    if (!cropElement) return
-    
-    // Create dark overlay
-    const overlay = new Rect({
-      left: 0,
-      top: 0,
-      width: canvas.width || 800,
-      height: canvas.height || 540,
-      fill: 'rgba(0, 0, 0, 0.6)',
-      selectable: false,
-      evented: false,
-      name: 'crop-overlay',
-    })
-    
-    // Create clear area for the crop frame
-    const cropFrame = new Rect({
-      left: cropElement.x,
-      top: cropElement.y,
-      width: cropElement.width,
-      height: cropElement.height,
-      fill: 'transparent',
-      stroke: '#E91E63',
-      strokeWidth: 3,
-      selectable: false,
-      evented: false,
-      name: 'crop-frame',
-    })
-    
-    canvas.add(overlay)
-    canvas.add(cropFrame)
-    
-    // Make only the crop image movable
-    const objects = canvas.getObjects()
-    objects.forEach(obj => {
-      const customObj = obj as CustomFabricObject
-      if (customObj.data?.elementId === cropModeElementId) {
-        customObj.selectable = true
-        customObj.evented = true
-        canvas.setActiveObject(customObj)
-      } else {
-        customObj.selectable = false
-        customObj.evented = false
-      }
-    })
-  }
   
   // Create Fabric object from store element
   const createFabricObject = useCallback(async (element: CanvasElement): Promise<CustomFabricObject | null> => {
@@ -287,45 +187,13 @@ export default function Canvas() {
               const img = await FabricImage.fromURL(element.imageUrl, {
                 crossOrigin: 'anonymous',
               })
-              
               obj = img
-              
-              // Apply crop data or default scaling
-              if (element.cropData) {
-                const scale = element.cropData.zoom / 100
-                obj.set({
-                  left: element.cropData.offsetX,
-                  top: element.cropData.offsetY,
-                  scaleX: scale,
-                  scaleY: scale,
-                })
-              } else {
-                // Default: scale to fill
-                const scaleX = element.width / (img.width || 1)
-                const scaleY = element.height / (img.height || 1)
-                const scale = Math.max(scaleX, scaleY)
-                obj.set({
-                  left: element.x,
-                  top: element.y,
-                  scaleX: scale,
-                  scaleY: scale,
-                })
-              }
-              
-              // Apply flip
-              if (element.flipX) obj.set({ flipX: true })
-              if (element.flipY) obj.set({ flipY: true })
-              
-              // Create clipPath for cropping
-              const clipRect = new Rect({
+              obj.scaleToWidth(element.width)
+              obj.scaleToHeight(element.height)
+              obj.set({
                 left: element.x,
                 top: element.y,
-                width: element.width,
-                height: element.height,
-                absolutePositioned: true,
               })
-              obj.clipPath = clipRect
-              
             } catch (error) {
               console.error('Error loading image:', error)
               // Fallback to placeholder
@@ -409,86 +277,6 @@ export default function Canvas() {
     }
   }, [])
   
-  // Handle crop zoom change
-  const handleCropZoomChange = (newZoom: number) => {
-    setCropZoom(newZoom)
-    const canvas = fabricCanvasRef.current
-    if (!canvas || !cropElement) return
-    
-    const obj = canvas.getObjects().find(o => {
-      const customObj = o as CustomFabricObject
-      return customObj.data?.elementId === cropModeElementId
-    })
-    
-    if (obj) {
-      const scale = newZoom / 100
-      obj.set({ scaleX: scale, scaleY: scale })
-      canvas.renderAll()
-    }
-  }
-  
-  // Handle crop done
-  const handleCropDone = () => {
-    if (!cropElement || !fabricCanvasRef.current) return
-    
-    const obj = fabricCanvasRef.current.getObjects().find(o => {
-      const customObj = o as CustomFabricObject
-      return customObj.data?.elementId === cropModeElementId
-    })
-    
-    if (obj) {
-      // Save crop data
-      updateElement(currentPageIndex, cropModeElementId!, {
-        cropData: {
-          offsetX: obj.left || 0,
-          offsetY: obj.top || 0,
-          zoom: cropZoom,
-        }
-      })
-    }
-    
-    setCropMode(null)
-    setOriginalCropData(null)
-  }
-  
-  // Handle crop cancel
-  const handleCropCancel = () => {
-    if (originalCropData && cropElement) {
-      // Restore original crop data
-      updateElement(currentPageIndex, cropModeElementId!, {
-        cropData: originalCropData,
-      })
-    }
-    setCropMode(null)
-    setOriginalCropData(null)
-  }
-  
-  // Handle crop reset
-  const handleCropReset = () => {
-    if (!cropElement) return
-    
-    setCropZoom(100)
-    
-    // Reset to center position
-    const canvas = fabricCanvasRef.current
-    if (!canvas) return
-    
-    const obj = canvas.getObjects().find(o => {
-      const customObj = o as CustomFabricObject
-      return customObj.data?.elementId === cropModeElementId
-    })
-    
-    if (obj) {
-      obj.set({
-        left: cropElement.x,
-        top: cropElement.y,
-        scaleX: 1,
-        scaleY: 1,
-      })
-      canvas.renderAll()
-    }
-  }
-  
   // Handle drag over
   const handleDragOver = (e: DragEvent<HTMLDivElement>) => {
     e.preventDefault()
@@ -499,8 +287,6 @@ export default function Canvas() {
   const handleDrop = (e: DragEvent<HTMLDivElement>) => {
     e.preventDefault()
     e.stopPropagation()
-    
-    if (cropModeElementId) return // Don't allow drops in crop mode
     
     try {
       const data = e.dataTransfer.getData('application/json')
@@ -597,7 +383,7 @@ export default function Canvas() {
     <div className="w-full h-full flex items-center justify-center overflow-auto">
       <div
         ref={containerRef}
-        className="transition-transform relative"
+        className="transition-transform"
       >
         <div className="flex gap-0.5">
           {/* Left page - Fabric canvas */}
@@ -626,53 +412,6 @@ export default function Canvas() {
             </div>
           </div>
         </div>
-        
-        {/* Crop Mode Toolbar */}
-        {cropModeElementId && cropElement && (
-          <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-white rounded-xl shadow-2xl border border-gray-200 px-4 py-3 flex items-center gap-4 z-[100]">
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-medium text-gray-600">Zoom:</span>
-              <input
-                type="range"
-                min="50"
-                max="200"
-                value={cropZoom}
-                onChange={(e) => handleCropZoomChange(Number(e.target.value))}
-                className="w-32"
-              />
-              <span className="text-xs font-medium text-gray-700 w-12">{cropZoom}%</span>
-            </div>
-            
-            <div className="w-px h-6 bg-gray-200" />
-            
-            <button
-              onClick={handleCropReset}
-              className="px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-100 rounded-lg transition-colors flex items-center gap-1.5"
-              title="Reset crop"
-            >
-              <RotateCcw className="w-3.5 h-3.5" />
-              Reset
-            </button>
-            
-            <button
-              onClick={handleCropCancel}
-              className="px-3 py-1.5 text-xs font-medium text-gray-700 hover:bg-gray-100 rounded-lg transition-colors flex items-center gap-1.5"
-              title="Cancel (Esc)"
-            >
-              <X className="w-3.5 h-3.5" />
-              Cancel
-            </button>
-            
-            <button
-              onClick={handleCropDone}
-              className="px-3 py-1.5 text-xs font-medium text-white bg-green-600 hover:bg-green-700 rounded-lg transition-colors flex items-center gap-1.5"
-              title="Done (Enter)"
-            >
-              <Check className="w-3.5 h-3.5" />
-              Done
-            </button>
-          </div>
-        )}
       </div>
     </div>
   )

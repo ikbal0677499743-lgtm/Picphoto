@@ -1,6 +1,6 @@
 'use client'
 
-import { Trash2, Copy, Lock, Eye, EyeOff } from 'lucide-react'
+import { Trash2, Copy, Eye, EyeOff, Crop, Maximize2, Minimize2, FlipHorizontal, FlipVertical } from 'lucide-react'
 import { useEditorStore } from '@/lib/store/editorStore'
 
 export default function ContextToolbar() {
@@ -10,6 +10,7 @@ export default function ContextToolbar() {
   const deleteElement = useEditorStore(state => state.deleteElement)
   const updateElement = useEditorStore(state => state.updateElement)
   const selectElement = useEditorStore(state => state.selectElement)
+  const setCropMode = useEditorStore(state => state.setCropMode)
   
   if (!selectedElementId) return null
   
@@ -17,6 +18,8 @@ export default function ContextToolbar() {
   const element = currentPage?.elements.find(el => el.id === selectedElementId)
   
   if (!element) return null
+  
+  const isImage = element.type === 'image' && !element.placeholder
   
   const handleDelete = () => {
     deleteElement(currentPageIndex, selectedElementId)
@@ -32,9 +35,55 @@ export default function ContextToolbar() {
       opacity: element.opacity === 1 ? 0.5 : 1,
     })
   }
+  
+  const handleCrop = () => {
+    setCropMode(selectedElementId)
+  }
+  
+  const handleFlipHorizontal = () => {
+    updateElement(currentPageIndex, selectedElementId, {
+      flipX: !element.flipX,
+    })
+  }
+  
+  const handleFlipVertical = () => {
+    updateElement(currentPageIndex, selectedElementId, {
+      flipY: !element.flipY,
+    })
+  }
 
   return (
     <div className="absolute top-4 left-1/2 -translate-x-1/2 bg-white rounded-xl shadow-lg border border-gray-200 px-2 py-1.5 flex items-center gap-1 z-50">
+      {isImage && (
+        <>
+          <button
+            onClick={handleCrop}
+            className="p-1.5 hover:bg-gray-100 rounded transition-colors"
+            title="Crop Image"
+          >
+            <Crop className="w-4 h-4 text-gray-700" />
+          </button>
+          
+          <button
+            onClick={handleFlipHorizontal}
+            className="p-1.5 hover:bg-gray-100 rounded transition-colors"
+            title="Flip Horizontal"
+          >
+            <FlipHorizontal className="w-4 h-4 text-gray-700" />
+          </button>
+          
+          <button
+            onClick={handleFlipVertical}
+            className="p-1.5 hover:bg-gray-100 rounded transition-colors"
+            title="Flip Vertical"
+          >
+            <FlipVertical className="w-4 h-4 text-gray-700" />
+          </button>
+          
+          <div className="w-px h-4 bg-gray-200 mx-1" />
+        </>
+      )}
+      
       <button
         onClick={handleDuplicate}
         className="p-1.5 hover:bg-gray-100 rounded transition-colors"
