@@ -6,7 +6,16 @@ A modern, responsive e-commerce storefront for creating custom travel photobooks
 ![TypeScript](https://img.shields.io/badge/TypeScript-5.9-blue?style=flat&logo=typescript)
 ![Tailwind CSS](https://img.shields.io/badge/Tailwind-3.4-38bdf8?style=flat&logo=tailwind-css)
 
-> **🚀 Want to get started quickly?** Check out the [QUICKSTART.md](./QUICKSTART.md) guide!
+---
+
+## 🎯 **NEW? START HERE!**
+
+> **📖 [START_HERE.md](./START_HERE.md)** — Complete launch & test guide (10 minutes)  
+> Perfect for first-time users who want to launch the app and test it immediately.
+
+> **🚀 Quick start?** Check out [QUICKSTART.md](./QUICKSTART.md) for just the commands (2 min)
+
+---
 
 ## ✨ Features
 
