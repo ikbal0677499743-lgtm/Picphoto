@@ -9,6 +9,7 @@ import { useEditorStore, CanvasElement } from '@/lib/store/editorStore'
 interface CustomFabricObject extends FabricObject {
   data?: {
     elementId: string
+    historyPushed?: boolean
   }
 }
 
@@ -34,6 +35,7 @@ export default function Canvas() {
   const templateTheme = useEditorStore(state => state.templateTheme)
   const cropModeElementId = useEditorStore(state => state.cropModeElementId)
   const setCropMode = useEditorStore(state => state.setCropMode)
+  const pushHistory = useEditorStore(state => state.pushHistory)
   
   const currentPage = pages[currentPageIndex]
   const cropElement = currentPage?.elements.find(el => el.id === cropModeElementId)
@@ -74,12 +76,43 @@ export default function Canvas() {
       selectElement(null)
     })
     
+    // Push history before object modifications start
+    canvas.on('object:moving', (e) => {
+      const obj = e.target as CustomFabricObject
+      if (obj && obj.data?.elementId && !obj.data.historyPushed) {
+        // Mark that we've pushed history for this modification session
+        obj.data.historyPushed = true
+        pushHistory()
+      }
+    })
+    
+    canvas.on('object:scaling', (e) => {
+      const obj = e.target as CustomFabricObject
+      if (obj && obj.data?.elementId && !obj.data.historyPushed) {
+        obj.data.historyPushed = true
+        pushHistory()
+      }
+    })
+    
+    canvas.on('object:rotating', (e) => {
+      const obj = e.target as CustomFabricObject
+      if (obj && obj.data?.elementId && !obj.data.historyPushed) {
+        obj.data.historyPushed = true
+        pushHistory()
+      }
+    })
+    
     // Handle object modifications
     canvas.on('object:modified', (e) => {
       if (isUpdatingStore.current) return
       const obj = e.target as CustomFabricObject
       if (obj && obj.data?.elementId) {
         isUpdatingStore.current = true
+        
+        // Clear the history flag for next modification
+        if (obj.data) {
+          obj.data.historyPushed = false
+        }
         
         // If in crop mode, save crop data
         if (cropModeElementId && obj.data.elementId === cropModeElementId) {

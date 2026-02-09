@@ -59,8 +59,9 @@ export default function EditorHeader() {
         <button
           onClick={undo}
           disabled={!canUndo}
+          title="Undo (Ctrl+Z)"
           className={`flex items-center gap-1.5 hover:bg-gray-100 rounded-lg px-2.5 py-1.5 transition-colors ${
-            !canUndo ? 'opacity-40 cursor-not-allowed' : ''
+            !canUndo ? 'opacity-40 cursor-not-allowed pointer-events-none' : ''
           }`}
         >
           <Undo2 className="w-4 h-4" />
@@ -70,8 +71,9 @@ export default function EditorHeader() {
         <button
           onClick={redo}
           disabled={!canRedo}
+          title="Redo (Ctrl+Shift+Z)"
           className={`flex items-center gap-1.5 hover:bg-gray-100 rounded-lg px-2.5 py-1.5 transition-colors ${
-            !canRedo ? 'opacity-40 cursor-not-allowed' : ''
+            !canRedo ? 'opacity-40 cursor-not-allowed pointer-events-none' : ''
           }`}
         >
           <Redo2 className="w-4 h-4" />
@@ -80,10 +82,15 @@ export default function EditorHeader() {
         
         <button
           onClick={handleHistory}
-          className="flex items-center gap-1.5 hover:bg-gray-100 rounded-lg px-2.5 py-1.5 transition-colors"
+          className="flex items-center gap-1.5 hover:bg-gray-100 rounded-lg px-2.5 py-1.5 transition-colors relative"
         >
           <Clock className="w-4 h-4" />
           <span className="text-xs">History</span>
+          {history.length > 0 && (
+            <span className="absolute -top-0.5 -right-0.5 bg-accent text-white text-[9px] font-bold rounded-full w-4 h-4 flex items-center justify-center">
+              {history.length}
+            </span>
+          )}
         </button>
         
         <button

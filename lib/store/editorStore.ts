@@ -48,6 +48,9 @@ export interface UploadedImage {
   height: number
 }
 
+// History snapshot type
+export type PagesSnapshot = Page[]
+
 interface EditorState {
   // Project
   projectId: string
@@ -71,8 +74,9 @@ interface EditorState {
   uploadedImages: UploadedImage[]
   
   // History
-  history: any[]
+  history: PagesSnapshot[]
   historyIndex: number
+  maxHistory: number
   
   // Save state
   isSaving: boolean
@@ -101,7 +105,7 @@ interface EditorState {
   
   undo: () => void
   redo: () => void
-  pushHistory: (snapshot: any) => void
+  pushHistory: () => void
   
   setSaving: (isSaving: boolean) => void
   setLastSaved: (date: string) => void
@@ -171,6 +175,7 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   
   history: [],
   historyIndex: -1,
+  maxHistory: 50,
   
   isSaving: false,
   lastSaved: null,
@@ -181,6 +186,7 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   },
   
   addPage: (afterIndex) => {
+    get().pushHistory() // Save state before modification
     const { pages } = get()
     const insertIndex = afterIndex !== undefined ? afterIndex + 1 : pages.length
     const newPage: Page = {
@@ -201,11 +207,13 @@ export const useEditorStore = create<EditorState>((set, get) => ({
     if (index === 0 || index === 1 || pages.length <= 3) {
       return
     }
+    get().pushHistory() // Save state before modification
     const newPages = pages.filter((_, i) => i !== index)
     set({ pages: newPages, currentPageIndex: Math.min(get().currentPageIndex, newPages.length - 1) })
   },
   
   duplicatePage: (index) => {
+    get().pushHistory() // Save state before modification
     const { pages } = get()
     const pageToDuplicate = pages[index]
     const newPage: Page = {
@@ -222,6 +230,7 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   },
   
   addElement: (pageIndex, element) => {
+    get().pushHistory() // Save state before modification
     const { pages } = get()
     const newPages = [...pages]
     newPages[pageIndex].elements.push(element)
@@ -242,6 +251,7 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   },
   
   deleteElement: (pageIndex, elementId) => {
+    get().pushHistory() // Save state before modification
     const { pages } = get()
     const newPages = [...pages]
     newPages[pageIndex].elements = newPages[pageIndex].elements.filter(el => el.id !== elementId)
@@ -253,6 +263,7 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   },
   
   setPageBackground: (pageIndex, color) => {
+    get().pushHistory() // Save state before modification
     const { pages } = get()
     const newPages = [...pages]
     newPages[pageIndex].backgroundColor = color
@@ -292,26 +303,72 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   },
   
   undo: () => {
-    const { history, historyIndex } = get()
-    if (historyIndex > 0) {
-      const previousState = history[historyIndex - 1]
-      set({ ...previousState, historyIndex: historyIndex - 1 })
+    const { history, historyIndex, pages } = get()
+    // Can't undo if at beginning
+    if (historyIndex <= 0) {
+      return
     }
+    
+    // If we're at the end of history, save current state first so redo can restore it
+    if (historyIndex === history.length - 1) {
+      const currentSnapshot = JSON.parse(JSON.stringify(pages))
+      const newHistory = [...history]
+      newHistory.push(currentSnapshot)
+      set({ history: newHistory })
+    }
+    
+    // Move back in history
+    const newIndex = historyIndex - 1
+    const previousPages = JSON.parse(JSON.stringify(history[newIndex]))
+    set({ 
+      pages: previousPages, 
+      historyIndex: newIndex,
+      selectedElementId: null,
+      cropModeElementId: null
+    })
   },
   
   redo: () => {
     const { history, historyIndex } = get()
-    if (historyIndex < history.length - 1) {
-      const nextState = history[historyIndex + 1]
-      set({ ...nextState, historyIndex: historyIndex + 1 })
+    // Can't redo if at end
+    if (historyIndex >= history.length - 1) {
+      return
     }
+    
+    // Move forward in history
+    const newIndex = historyIndex + 1
+    const nextPages = JSON.parse(JSON.stringify(history[newIndex]))
+    set({ 
+      pages: nextPages, 
+      historyIndex: newIndex,
+      selectedElementId: null,
+      cropModeElementId: null
+    })
   },
   
-  pushHistory: (snapshot) => {
-    const { history, historyIndex } = get()
-    const newHistory = history.slice(0, historyIndex + 1)
+  pushHistory: () => {
+    const { pages, history, historyIndex, maxHistory } = get()
+    
+    // Deep clone current pages state
+    const snapshot: PagesSnapshot = JSON.parse(JSON.stringify(pages))
+    
+    // If we're not at the end of history, trim future history
+    let newHistory = historyIndex < history.length - 1 
+      ? history.slice(0, historyIndex + 1)
+      : [...history]
+    
+    // Add new snapshot
     newHistory.push(snapshot)
-    set({ history: newHistory, historyIndex: newHistory.length - 1 })
+    
+    // Enforce max history limit
+    if (newHistory.length > maxHistory) {
+      newHistory = newHistory.slice(newHistory.length - maxHistory)
+    }
+    
+    set({ 
+      history: newHistory, 
+      historyIndex: newHistory.length - 1 
+    })
   },
   
   setSaving: (isSaving) => {
