@@ -266,7 +266,46 @@ npm run dev
 
 ---
 
-### ❌ ERROR: "Cannot find package.json" or "ENOENT: no such file or directory"
+### ❌ ERROR: "Cannot find package.json" - But You're IN the Picphoto Folder!
+
+**Your terminal shows `Picphoto %` but npm can't find package.json?**
+
+**This means your folder is EMPTY or INCOMPLETE!**
+
+**Quick test:**
+```bash
+ls -la
+```
+
+If you see very few files or no package.json, your folder is empty/incomplete!
+
+**Solution:**
+```bash
+# Go up one directory
+cd ..
+
+# Remove incomplete folder
+rm -rf Picphoto
+
+# Clone fresh from GitHub
+git clone https://github.com/ikbal0677499743-lgtm/Picphoto.git
+
+# Navigate into it
+cd Picphoto
+
+# Verify files exist
+ls package.json
+
+# Install and run
+npm install
+npm run dev
+```
+
+👉 **Full detailed guide:** See [INCOMPLETE_CLONE.md](./INCOMPLETE_CLONE.md)
+
+---
+
+### ❌ ERROR: "Cannot find package.json" - Wrong Directory
 
 **This is the #1 most common error!** It means you're running npm commands from the wrong directory.
 
