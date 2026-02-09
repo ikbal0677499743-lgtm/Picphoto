@@ -82,6 +82,10 @@ interface EditorState {
   isSaving: boolean
   lastSaved: string | null
   
+  // Auto-create state
+  isAutoCreating: boolean
+  autoCreateProgress: number
+  
   // Actions
   setCurrentPage: (index: number) => void
   addPage: (afterIndex?: number) => void
@@ -111,6 +115,11 @@ interface EditorState {
   setLastSaved: (date: string) => void
   
   setTemplateTheme: (theme: string) => void
+  
+  // Auto-create actions
+  setAutoCreating: (isAutoCreating: boolean) => void
+  setAutoCreateProgress: (progress: number) => void
+  autoCreateBook: (images: UploadedImage[]) => void
 }
 
 // Helper function to generate UUID (simplified version if uuid not available)
@@ -179,6 +188,9 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   
   isSaving: false,
   lastSaved: null,
+  
+  isAutoCreating: false,
+  autoCreateProgress: 0,
   
   // Actions
   setCurrentPage: (index) => {
@@ -381,5 +393,182 @@ export const useEditorStore = create<EditorState>((set, get) => ({
   
   setTemplateTheme: (theme) => {
     set({ templateTheme: theme })
+  },
+  
+  setAutoCreating: (isAutoCreating) => {
+    set({ isAutoCreating })
+  },
+  
+  setAutoCreateProgress: (progress) => {
+    set({ autoCreateProgress: progress })
+  },
+  
+  autoCreateBook: async (images) => {
+    if (images.length === 0) return
+    
+    // Push history before auto-creating
+    get().pushHistory()
+    
+    // Set creating state
+    set({ isAutoCreating: true, autoCreateProgress: 0 })
+    
+    // Define layout slots
+    const FULL_PAGE = [{ x: 10, y: 10, w: 380, h: 520 }]
+    const TWO_VERTICAL = [
+      { x: 10, y: 10, w: 185, h: 520 },
+      { x: 205, y: 10, w: 185, h: 520 },
+    ]
+    const TWO_HORIZONTAL = [
+      { x: 10, y: 10, w: 380, h: 255 },
+      { x: 10, y: 275, w: 380, h: 255 },
+    ]
+    const GRID_2X2 = [
+      { x: 10, y: 10, w: 185, h: 255 },
+      { x: 205, y: 10, w: 185, h: 255 },
+      { x: 10, y: 275, w: 185, h: 255 },
+      { x: 205, y: 275, w: 185, h: 255 },
+    ]
+    const ONE_BIG_TWO_SMALL = [
+      { x: 10, y: 10, w: 380, h: 340 },
+      { x: 10, y: 360, w: 185, h: 170 },
+      { x: 205, y: 360, w: 185, h: 170 },
+    ]
+    const THREE_COLUMNS = [
+      { x: 10, y: 10, w: 120, h: 520 },
+      { x: 136, y: 10, w: 120, h: 520 },
+      { x: 272, y: 10, w: 120, h: 520 },
+    ]
+    const MOSAIC_5 = [
+      { x: 10, y: 10, w: 240, h: 255 },
+      { x: 260, y: 10, w: 130, h: 165 },
+      { x: 260, y: 185, w: 130, h: 70 },
+      { x: 10, y: 275, w: 185, h: 255 },
+      { x: 205, y: 275, w: 185, h: 255 },
+    ]
+    
+    const { pages } = get()
+    const newPages = [...pages]
+    
+    // Calculate inner pages (exclude cover and guard)
+    let innerPageCount = pages.length - 2
+    const imageCount = images.length
+    let imagesPerPage = 2
+    
+    // Determine images per page
+    if (imageCount <= 22) {
+      imagesPerPage = 1
+    } else if (imageCount <= 44) {
+      imagesPerPage = 2
+    } else if (imageCount <= 88) {
+      imagesPerPage = 4
+    } else {
+      imagesPerPage = 4
+    }
+    
+    // Calculate needed pages
+    const neededPages = Math.ceil(imageCount / imagesPerPage)
+    
+    // Add pages if needed
+    while (innerPageCount < neededPages) {
+      newPages.push({
+        id: generateId(),
+        type: 'inner',
+        elements: [],
+        backgroundColor: '#FFFFFF',
+        backgroundPattern: null,
+      })
+      innerPageCount++
+    }
+    
+    // Distribute images across pages
+    let imageIndex = 0
+    
+    for (let pageIdx = 2; pageIdx < newPages.length && imageIndex < imageCount; pageIdx++) {
+      const remainingImages = imageCount - imageIndex
+      let layout
+      const imagesForThisPage = Math.min(remainingImages, imagesPerPage)
+      
+      // Select layout based on images for this page
+      if (imagesForThisPage === 1) {
+        layout = FULL_PAGE
+      } else if (imagesForThisPage === 2) {
+        layout = pageIdx % 2 === 0 ? TWO_VERTICAL : TWO_HORIZONTAL
+      } else if (imagesForThisPage === 3) {
+        layout = ONE_BIG_TWO_SMALL
+      } else if (imagesForThisPage === 4) {
+        layout = GRID_2X2
+      } else if (imagesForThisPage >= 5) {
+        layout = MOSAIC_5
+      } else {
+        layout = FULL_PAGE
+      }
+      
+      // Create image elements for this page
+      const pageElements: CanvasElement[] = []
+      
+      for (let i = 0; i < Math.min(layout.length, remainingImages); i++) {
+        if (imageIndex < imageCount) {
+          const slot = layout[i]
+          const image = images[imageIndex]
+          
+          pageElements.push({
+            id: generateId(),
+            type: 'image',
+            x: slot.x,
+            y: slot.y,
+            width: slot.w,
+            height: slot.h,
+            rotation: 0,
+            opacity: 1,
+            zIndex: i,
+            imageUrl: image.url,
+            placeholder: false,
+          })
+          
+          imageIndex++
+        }
+      }
+      
+      newPages[pageIdx].elements = pageElements
+      
+      // Update progress
+      const progress = Math.min(95, Math.floor((imageIndex / imageCount) * 100))
+      set({ autoCreateProgress: progress })
+      
+      // Small delay to show progress
+      await new Promise(resolve => setTimeout(resolve, 50))
+    }
+    
+    // Add title text to first inner page
+    if (newPages.length > 2 && newPages[2].elements.length === 0) {
+      newPages[2].elements.push({
+        id: generateId(),
+        type: 'text',
+        x: 50,
+        y: 200,
+        width: 300,
+        height: 60,
+        rotation: 0,
+        opacity: 1,
+        zIndex: 100,
+        content: 'Our Adventure',
+        fontFamily: 'Playfair Display',
+        fontSize: 48,
+        fontColor: '#000000',
+        fontWeight: 'bold',
+        textAlign: 'center',
+      })
+    }
+    
+    // Finish
+    set({ 
+      pages: newPages, 
+      autoCreateProgress: 100,
+      currentPageIndex: 0 
+    })
+    
+    // Wait a bit then hide overlay
+    await new Promise(resolve => setTimeout(resolve, 500))
+    set({ isAutoCreating: false, autoCreateProgress: 0 })
   },
 }))
